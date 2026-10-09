@@ -30,6 +30,8 @@ import {
     getTodayTimetable,
 } from '../../services/dashboardService'
 
+import { getActiveSemester } from '../../services/academicYearService'
+
 // ------------------------------------
 // Shared UI
 // ------------------------------------
@@ -226,6 +228,8 @@ function Dashboard() {
 
     const [coursePage, setCoursePage] = useState(0)
 
+    const [activeSemesterId, setActiveSemesterId] = useState(null)
+
     // Existing Supabase calls
     useEffect(() => {
         if (!user?.id) return
@@ -237,15 +241,25 @@ function Dashboard() {
                 setLoading(true)
                 setError('')
 
+
                 const dayOfWeek = new Date().getDay()
 
+                // Get the active semester selected by the user.
+                const semesterId = await getActiveSemester(user.id)
+
+                if (!active) return
+
+                setActiveSemesterId(semesterId)
+
+                // Fetch dashboard data.
+                // Only courses are filtered by active semester at this step.
                 const [
                     courseData,
                     assignmentData,
                     taskData,
                     timetableData,
                 ] = await Promise.all([
-                    getDashboardCourses(user.id),
+                    getDashboardCourses(user.id, semesterId),
                     getDashboardAssignments(user.id),
                     getDashboardTasks(user.id),
                     getTodayTimetable(user.id, dayOfWeek),
@@ -484,6 +498,29 @@ function Dashboard() {
                 </div>
             )}
 
+
+            {!activeSemesterId && (
+                <div className="rounded-2xl border border-[#DCE3F5] bg-[#F1F4FF] px-5 py-4">
+                    <p className="text-sm font-semibold text-[#354B92]">
+                        No active semester selected
+                    </p>
+
+                    <p className="mt-1 text-xs leading-5 text-[#6577AD]">
+                        Select your active semester in Academic Years
+                        to see courses for your current semester.
+                    </p>
+
+                    <NavLink
+                        to="/academic-years"
+                        className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#526BC6] hover:underline"
+                    >
+                        Go to Academic Years
+                        <ArrowRight size={14} />
+                    </NavLink>
+                </div>
+            )}
+
+
             {/* ====================================
           Overview Statistics
       ==================================== */}
@@ -650,7 +687,7 @@ function Dashboard() {
                                 aria-valuenow={completionPercentage}
                                 aria-valuemin={0}
                                 aria-valuemax={100}
-                                className="relative flex h-[145px] w-[145px] shrink-0 items-center justify-center rounded-full"
+                                className="relative flex h-36.25 w-36.25 shrink-0 items-center justify-center rounded-full"
                                 style={{
                                     background: `conic-gradient(
                     #75D4CF 0% ${completionPercentage}%,

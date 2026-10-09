@@ -1,30 +1,34 @@
 import { supabase } from '../lib/supabase'
 
-export async function getDashboardCourses(userId) {
+
+export async function getDashboardCourses(userId, semesterId) {
+  if (semesterId == null) return []
+
   const { data, error } = await supabase
     .from('courses')
     .select(`
       id,
       code,
       name,
-      semesters (
+      semester_id,
+      semesters!inner (
         id,
         name,
-        academic_years (
+        academic_years!inner (
           id,
           name,
           user_id
         )
       )
     `)
+    .eq('semester_id', semesterId)
+    .eq('semesters.academic_years.user_id', userId)
 
   if (error) throw error
 
-  return data.filter(
-    (course) =>
-      course.semesters?.academic_years?.user_id === userId
-  )
+  return data || []
 }
+
 
 export async function getDashboardAssignments(userId) {
   const { data, error } = await supabase
