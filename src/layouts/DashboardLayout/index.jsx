@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import {
@@ -34,6 +33,7 @@ function DashboardLayout() {
     const [mobileOpen, setMobileOpen] = useState(false)
 
     const displayName =
+        user?.user_metadata?.display_name ||
         user?.user_metadata?.full_name ||
         user?.email?.split('@')[0] ||
         'Student'
@@ -250,8 +250,8 @@ function DashboardLayout() {
                                 <p className="truncate text-xs font-semibold">
                                     {displayName}
                                 </p>
-                                <p className="text-[10px] text-[#9DA2AF]">
-                                    Student
+                                <p className="truncate text-[10px] text-[#9DA2AF]">
+                                    {user?.email || 'Student'}
                                 </p>
                             </div>
                         </div>
