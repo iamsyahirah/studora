@@ -658,7 +658,7 @@ function Dashboard() {
                   )`,
                                 }}
                             >
-                                <div className="flex h-[116px] w-[116px] flex-col items-center justify-center rounded-full bg-white">
+                                <div className="flex h-29 w-29 flex-col items-center justify-center rounded-full bg-white">
                                     <p className="font-['Space_Grotesk',sans-serif] text-[32px] font-bold tracking-tight">
                                         {completionPercentage}%
                                     </p>
@@ -773,7 +773,7 @@ function Dashboard() {
 
                                             <div className="relative min-w-0 flex-1 border-l-2 border-[#DCE6FA] pl-4">
                                                 <span
-                                                    className={`absolute -left-[6px] top-1 h-2.5 w-2.5 rounded-full ${config.dot}`}
+                                                    className={`absolute -left-1.5 top-1 h-2.5 w-2.5 rounded-full ${config.dot}`}
                                                 />
 
                                                 <p className="text-[10px] font-semibold tracking-wide text-[#6B81CA]">

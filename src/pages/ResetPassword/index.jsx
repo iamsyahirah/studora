@@ -99,7 +99,7 @@ function ResetPassword() {
 
     return (
         <div className="flex min-h-dvh items-center justify-center bg-[#EFF2F8] px-4 py-10">
-            <div className="w-full max-w-[440px]">
+            <div className="w-full max-w-110">
 
                 {/* Brand */}
                 <div className="mb-8 flex items-center justify-center gap-3">
@@ -112,7 +112,7 @@ function ResetPassword() {
                     </h1>
                 </div>
 
-                <div className="rounded-[24px] border border-[#E8EBF1] bg-white p-7 shadow-[0_15px_45px_rgba(40,55,90,0.05)] sm:p-9">
+                <div className="rounded-3xl border border-[#E8EBF1] bg-white p-7 shadow-[0_15px_45px_rgba(40,55,90,0.05)] sm:p-9">
 
                     {success ? (
                         <div className="text-center">
