@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabase'
 
-
 export async function getDashboardCourses(userId, semesterId) {
   if (semesterId == null) return []
 
@@ -30,7 +29,9 @@ export async function getDashboardCourses(userId, semesterId) {
 }
 
 
-export async function getDashboardAssignments(userId) {
+export async function getDashboardAssignments(userId, semesterId) {
+  if (semesterId == null) return []
+
   const { data, error } = await supabase
     .from('assignments')
     .select(`
@@ -40,28 +41,30 @@ export async function getDashboardAssignments(userId) {
       priority,
       status,
       progress,
-      courses (
+      courses!inner (
         id,
         code,
         name,
-        semesters (
-          academic_years (
+        semester_id,
+        semesters!inner (
+          academic_years!inner (
             user_id
           )
         )
       )
     `)
+    .eq('courses.semester_id', semesterId)
+    .eq('courses.semesters.academic_years.user_id', userId)
     .order('due_date', { ascending: true })
 
   if (error) throw error
 
-  return data.filter(
-    (assignment) =>
-      assignment.courses?.semesters?.academic_years?.user_id === userId
-  )
+  return data || []
 }
 
-export async function getDashboardTasks(userId) {
+export async function getDashboardTasks(userId, semesterId) {
+  if (semesterId == null) return []
+
   const { data, error } = await supabase
     .from('tasks')
     .select(`
@@ -70,28 +73,30 @@ export async function getDashboardTasks(userId) {
       due_date,
       priority,
       status,
-      courses (
+      courses!inner (
         id,
         code,
         name,
-        semesters (
-          academic_years (
+        semester_id,
+        semesters!inner (
+          academic_years!inner (
             user_id
           )
         )
       )
     `)
+    .eq('courses.semester_id', semesterId)
+    .eq('courses.semesters.academic_years.user_id', userId)
     .order('due_date', { ascending: true })
 
   if (error) throw error
 
-  return data.filter(
-    (task) =>
-      task.courses?.semesters?.academic_years?.user_id === userId
-  )
+  return data || []
 }
 
-export async function getTodayTimetable(userId, dayOfWeek) {
+export async function getTodayTimetable(userId, dayOfWeek, semesterId) {
+  if (semesterId == null) return []
+
   const { data, error } = await supabase
     .from('timetable_entries')
     .select(`
@@ -100,24 +105,24 @@ export async function getTodayTimetable(userId, dayOfWeek) {
       start_time,
       end_time,
       location,
-      courses (
+      courses!inner (
         id,
         code,
         name,
-        semesters (
-          academic_years (
+        semester_id,
+        semesters!inner (
+          academic_years!inner (
             user_id
           )
         )
       )
     `)
     .eq('day_of_week', dayOfWeek)
+    .eq('courses.semester_id', semesterId)
+    .eq('courses.semesters.academic_years.user_id', userId)
     .order('start_time', { ascending: true })
 
   if (error) throw error
 
-  return data.filter(
-    (entry) =>
-      entry.courses?.semesters?.academic_years?.user_id === userId
-  )
+  return data || []
 }

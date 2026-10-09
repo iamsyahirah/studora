@@ -30,7 +30,8 @@ import {
     getTodayTimetable,
 } from '../../services/dashboardService'
 
-import { getActiveSemester } from '../../services/academicYearService'
+import { getActiveSemester, getAcademicYears, getSemesterSessions, } from '../../services/academicYearService'
+import AcademicTracker from '../../components/Dashboard/AcademicTracker'
 
 // ------------------------------------
 // Shared UI
@@ -229,6 +230,8 @@ function Dashboard() {
     const [coursePage, setCoursePage] = useState(0)
 
     const [activeSemesterId, setActiveSemesterId] = useState(null)
+    const [activeSemesterName, setActiveSemesterName] = useState('')
+    const [semesterSessions, setSemesterSessions] = useState([])
 
     // Existing Supabase calls
     useEffect(() => {
@@ -247,9 +250,20 @@ function Dashboard() {
                 // Get the active semester selected by the user.
                 const semesterId = await getActiveSemester(user.id)
 
+                const [yearsData, sessionsData] = await Promise.all([
+                    getAcademicYears(user.id),
+                    getSemesterSessions(semesterId),
+                ])
+
                 if (!active) return
 
+                const currentSemester = (yearsData || [])
+                    .flatMap((year) => year.semesters || [])
+                    .find((semester) => semester.id === semesterId)
+
                 setActiveSemesterId(semesterId)
+                setActiveSemesterName(currentSemester?.name || '')
+                setSemesterSessions(sessionsData)
 
                 // Fetch dashboard data.
                 // Only courses are filtered by active semester at this step.
@@ -260,9 +274,9 @@ function Dashboard() {
                     timetableData,
                 ] = await Promise.all([
                     getDashboardCourses(user.id, semesterId),
-                    getDashboardAssignments(user.id),
-                    getDashboardTasks(user.id),
-                    getTodayTimetable(user.id, dayOfWeek),
+                    getDashboardAssignments(user.id, semesterId),
+                    getDashboardTasks(user.id, semesterId),
+                    getTodayTimetable(user.id, dayOfWeek, semesterId),
                 ])
 
                 if (!active) return
@@ -519,6 +533,12 @@ function Dashboard() {
                     </NavLink>
                 </div>
             )}
+
+            <AcademicTracker
+                semesterName={activeSemesterName || 'No active semester'}
+                studyMode="Part-Time"
+                sessions={semesterSessions}
+            />
 
 
             {/* ====================================

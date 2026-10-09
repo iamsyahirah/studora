@@ -178,3 +178,19 @@ export async function deactivateSemester(userId) {
 
   return data.active_semester_id
 }
+
+
+export async function getSemesterSessions(semesterId) {
+  if (semesterId == null) return []
+
+  const { data, error } = await supabase
+    .from('semester_sessions')
+    .select('id, semester_id, session_number, session_date')
+    .eq('semester_id', semesterId)
+    .order('session_date', { ascending: true })
+
+  if (error) throw error
+
+  return data || []
+}
+
