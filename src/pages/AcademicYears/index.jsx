@@ -23,6 +23,7 @@ import {
     deleteSemester,
     getActiveSemester,
     setActiveSemester,
+    deactivateSemester,
 } from '../../services/academicYearService'
 
 function AcademicYears() {
@@ -363,6 +364,23 @@ function AcademicYears() {
             setActiveSemesterId(savedId)
         } catch (err) {
             setError(err.message || 'Unable to activate semester.')
+        } finally {
+            setActivatingSemesterId(null)
+        }
+    }
+
+    async function handleDeactivateSemester() {
+        if (!user?.id || activatingSemesterId !== null) return
+
+        try {
+            setError('')
+            setActivatingSemesterId(activeSemesterId)
+
+            await deactivateSemester(user.id)
+
+            setActiveSemesterId(null)
+        } catch (err) {
+            setError(err.message || 'Unable to deactivate semester.')
         } finally {
             setActivatingSemesterId(null)
         }
@@ -820,29 +838,29 @@ function AcademicYears() {
 
                                                             <div className="flex items-center gap-1">
 
+
                                                                 <button
                                                                     type="button"
-                                                                    onClick={() => handleSetActiveSemester(semester.id)}
-                                                                    disabled={
-                                                                        activeSemesterId === semester.id ||
-                                                                        activatingSemesterId !== null
-                                                                    }
-                                                                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#DCE3F5] bg-[#F1F4FF] px-3 py-2 text-xs font-semibold text-[#526BC6] transition hover:bg-[#E5EBFF] disabled:cursor-default disabled:opacity-60"
+                                                                    onClick={() => {
+                                                                        if (activeSemesterId === semester.id) {
+                                                                            handleDeactivateSemester()
+                                                                        } else {
+                                                                            handleSetActiveSemester(semester.id)
+                                                                        }
+                                                                    }}
+                                                                    disabled={activatingSemesterId !== null}
+                                                                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition disabled:opacity-60 ${activeSemesterId === semester.id
+                                                                        ? 'border-[#F2D8DC] bg-[#FFF1F2] text-[#B44C62] hover:bg-[#FFE4E8]'
+                                                                        : 'border-[#DCE3F5] bg-[#F1F4FF] text-[#526BC6] hover:bg-[#E5EBFF]'
+                                                                        }`}
                                                                 >
-                                                                    {activeSemesterId === semester.id ? (
-                                                                        <>
-                                                                            <CheckCircle2 size={14} />
-                                                                            Active
-                                                                        </>
-                                                                    ) : activatingSemesterId === semester.id ? (
-                                                                        'Activating...'
-                                                                    ) : (
-                                                                        <>
-                                                                            <Circle size={14} />
-                                                                            Set as Active
-                                                                        </>
-                                                                    )}
+                                                                    {activatingSemesterId === semester.id
+                                                                        ? 'Updating...'
+                                                                        : activeSemesterId === semester.id
+                                                                            ? 'Deactivate'
+                                                                            : 'Set as Active'}
                                                                 </button>
+
 
                                                                 <button
                                                                     type="button"

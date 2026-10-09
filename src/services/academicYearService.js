@@ -165,3 +165,16 @@ export async function setActiveSemester(userId, semesterId) {
 
   return data.active_semester_id
 }
+
+export async function deactivateSemester(userId) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ active_semester_id: null })
+    .eq('id', userId)
+    .select('active_semester_id')
+    .single()
+
+  if (error) throw error
+
+  return data.active_semester_id
+}
