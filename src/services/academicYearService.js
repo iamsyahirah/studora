@@ -128,3 +128,40 @@ export async function deleteSemester(id) {
         throw error
     }
 }
+
+
+export async function getActiveSemester(userId) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('active_semester_id')
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (error) throw error
+
+  return data?.active_semester_id ?? null
+}
+
+export async function setActiveSemester(userId, semesterId) {
+  // Verify that the semester belongs to the signed-in user.
+  const { data: semester, error: semesterError } = await supabase
+    .from('semesters')
+    .select('id, academic_years!inner(user_id)')
+    .eq('id', semesterId)
+    .eq('academic_years.user_id', userId)
+    .single()
+
+  if (semesterError) throw semesterError
+  if (!semester) throw new Error('Semester not found.')
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ active_semester_id: semesterId })
+    .eq('id', userId)
+    .select('active_semester_id')
+    .single()
+
+  if (error) throw error
+
+  return data.active_semester_id
+}

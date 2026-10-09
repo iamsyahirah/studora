@@ -6,6 +6,9 @@ import {
     ChevronDown,
     ChevronRight,
     CalendarDays,
+    CheckCircle2,
+    Circle,
+    GraduationCap,
 } from 'lucide-react'
 
 import { useAuth } from '../../context/AuthContext'
@@ -18,6 +21,8 @@ import {
     createSemester,
     updateSemester,
     deleteSemester,
+    getActiveSemester,
+    setActiveSemester,
 } from '../../services/academicYearService'
 
 function AcademicYears() {
@@ -41,6 +46,9 @@ function AcademicYears() {
 
     const [editingSemesterId, setEditingSemesterId] = useState(null)
 
+    const [activeSemesterId, setActiveSemesterId] = useState(null)
+    const [activatingSemesterId, setActivatingSemesterId] = useState(null)
+
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
@@ -50,9 +58,14 @@ function AcademicYears() {
             try {
                 setError('')
 
-                const data = await getAcademicYears(user.id)
+                const [yearsData, activeId] = await Promise.all([
+                    getAcademicYears(user.id),
+                    getActiveSemester(user.id),
+                ])
 
-                setAcademicYears(data || [])
+                setAcademicYears(yearsData || [])
+                setActiveSemesterId(activeId)
+
             } catch (error) {
                 setError(error.message)
             } finally {
@@ -64,6 +77,15 @@ function AcademicYears() {
             loadAcademicYears()
         }
     }, [user?.id])
+
+    const activeSemesterInfo = academicYears
+        .flatMap((year) =>
+            (year.semesters || []).map((semester) => ({
+                ...semester,
+                academicYearName: year.name,
+            }))
+        )
+        .find((semester) => semester.id === activeSemesterId)
 
     // =========================
     // Academic Year
@@ -325,6 +347,27 @@ function AcademicYears() {
         }
     }
 
+
+    async function handleSetActiveSemester(semesterId) {
+        if (!user?.id || activatingSemesterId !== null) return
+
+        try {
+            setError('')
+            setActivatingSemesterId(semesterId)
+
+            const savedId = await setActiveSemester(
+                user.id,
+                semesterId
+            )
+
+            setActiveSemesterId(savedId)
+        } catch (err) {
+            setError(err.message || 'Unable to activate semester.')
+        } finally {
+            setActivatingSemesterId(null)
+        }
+    }
+
     if (loading) {
         return (
             <div className="p-6">
@@ -354,6 +397,61 @@ function AcademicYears() {
                     {error}
                 </div>
             )}
+
+
+            {/* Current Active Semester */}
+            <section className="rounded-[22px] border border-[#CDEBE3] bg-[#E7F5F2] p-5 sm:p-6">
+
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-[#278567]">
+                        <GraduationCap size={20} />
+                        <span className="text-xs font-bold tracking-[0.08em]">
+                            CURRENT SEMESTER
+                        </span>
+                    </div>
+
+                    {activeSemesterInfo && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#278567]">
+                            <CheckCircle2 size={15} />
+                            Active
+                        </span>
+                    )}
+                </div>
+
+                {activeSemesterInfo ? (
+                    <>
+                        <h2 className="font-['Space_Grotesk',sans-serif] text-[30px] font-bold tracking-tight text-[#202027]">
+                            {activeSemesterInfo.name}
+                        </h2>
+
+                        <p className="mt-1 text-sm font-medium text-[#526C71]">
+                            Academic Year {activeSemesterInfo.academicYearName}
+                        </p>
+
+                        <div className="mt-5 border-t border-[#C5E6DC] pt-4">
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-[#526C71]">
+                                <CalendarDays size={16} />
+                                <span>
+                                    {activeSemesterInfo.start_date || 'Start date not set'}
+                                    {' → '}
+                                    {activeSemesterInfo.end_date || 'End date not set'}
+                                </span>
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <div>
+                        <h2 className="text-xl font-bold text-[#202027]">
+                            No active semester
+                        </h2>
+
+                        <p className="mt-2 text-sm text-[#526C71]">
+                            Select a semester below and click Set as Active.
+                        </p>
+                    </div>
+                )}
+            </section>
+
 
             {/* Add Academic Year */}
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -450,10 +548,7 @@ function AcademicYears() {
                                             <p className="mt-0.5 text-xs text-slate-500">
                                                 {year.semesters?.length || 0}{' '}
                                                 semester
-                                                {year.semesters?.length ===
-                                                    1
-                                                    ? ''
-                                                    : 's'}
+                                                {year.semesters?.length === 1 ? '' : 's'} registered
                                             </p>
                                         </div>
                                     </button>
@@ -701,11 +796,18 @@ function AcademicYears() {
                                                             className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white px-4 py-4"
                                                         >
                                                             <div>
-                                                                <p className="font-medium text-slate-900">
-                                                                    {
-                                                                        semester.name
-                                                                    }
-                                                                </p>
+                                                                <div className="flex flex-wrap items-center gap-2">
+                                                                    <p className="font-medium text-slate-900">
+                                                                        {semester.name}
+                                                                    </p>
+
+                                                                    {activeSemesterId === semester.id && (
+                                                                        <span className="inline-flex items-center gap-1 rounded-full bg-[#DFF5EB] px-2.5 py-1 text-[10px] font-semibold text-[#278567]">
+                                                                            <CheckCircle2 size={12} />
+                                                                            Active
+                                                                        </span>
+                                                                    )}
+                                                                </div>
 
                                                                 <p className="mt-1 text-sm text-slate-500">
                                                                     {semester.start_date ||
@@ -717,6 +819,31 @@ function AcademicYears() {
                                                             </div>
 
                                                             <div className="flex items-center gap-1">
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleSetActiveSemester(semester.id)}
+                                                                    disabled={
+                                                                        activeSemesterId === semester.id ||
+                                                                        activatingSemesterId !== null
+                                                                    }
+                                                                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#DCE3F5] bg-[#F1F4FF] px-3 py-2 text-xs font-semibold text-[#526BC6] transition hover:bg-[#E5EBFF] disabled:cursor-default disabled:opacity-60"
+                                                                >
+                                                                    {activeSemesterId === semester.id ? (
+                                                                        <>
+                                                                            <CheckCircle2 size={14} />
+                                                                            Active
+                                                                        </>
+                                                                    ) : activatingSemesterId === semester.id ? (
+                                                                        'Activating...'
+                                                                    ) : (
+                                                                        <>
+                                                                            <Circle size={14} />
+                                                                            Set as Active
+                                                                        </>
+                                                                    )}
+                                                                </button>
+
                                                                 <button
                                                                     type="button"
                                                                     onClick={() =>
