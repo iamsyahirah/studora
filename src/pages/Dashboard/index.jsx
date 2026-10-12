@@ -32,7 +32,7 @@ import {
 
 import { getActiveSemester, getAcademicYears, getSemesterSessions, } from '../../services/academicYearService'
 import AcademicTracker from '../../components/Dashboard/AcademicTracker'
-import ImportantDates from '../../components/ImportantDates/ImportantDates'
+import ImportantDatesWidget from '../../components/Dashboard/ImportantDatesWidget'
 
 // ------------------------------------
 // Shared UI
@@ -535,7 +535,6 @@ function Dashboard() {
                 </div>
             )}
 
-
             {/* Academic Tracker + Important Dates */}
             <div className="grid items-start gap-4 xl:grid-cols-2">
                 <AcademicTracker
@@ -544,9 +543,8 @@ function Dashboard() {
                     sessions={semesterSessions}
                 />
 
-                <ImportantDates semesterId={activeSemesterId} />
+                <ImportantDatesWidget semesterId={activeSemesterId} />
             </div>
-
 
 
             {/* ====================================
@@ -993,7 +991,7 @@ function Dashboard() {
                     Keep learning, keep growing.
                 </span>
             </footer>
-        </div>
+        </div >
     )
 }
 

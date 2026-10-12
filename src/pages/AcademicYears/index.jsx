@@ -27,6 +27,7 @@ import {
 } from '../../services/academicYearService'
 
 import SemesterSessions from '../../components/Academic/SemesterSessions'
+import ImportantDates from '../../components/importantDates/ImportantDates'
 
 function AcademicYears() {
     const { user } = useAuth()
@@ -473,10 +474,14 @@ function AcademicYears() {
             </section>
 
             {activeSemesterInfo && (
-                <SemesterSessions
-                    semesterId={activeSemesterId}
-                    semesterName={activeSemesterInfo.name}
-                />
+                <div className="space-y-4">
+                    <SemesterSessions
+                        semesterId={activeSemesterId}
+                        semesterName={activeSemesterInfo.name}
+                    />
+
+                    <ImportantDates semesterId={activeSemesterId} />
+                </div>
             )}
 
 
