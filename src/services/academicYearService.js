@@ -194,3 +194,48 @@ export async function getSemesterSessions(semesterId) {
   return data || []
 }
 
+
+export async function createSemesterSession(
+  semesterId,
+  sessionNumber,
+  sessionDate
+) {
+  const { data, error } = await supabase
+    .from('semester_sessions')
+    .insert({
+      semester_id: semesterId,
+      session_number: sessionNumber,
+      session_date: sessionDate,
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+
+  return data
+}
+
+export async function updateSemesterSession(sessionId, sessionDate) {
+  const { data, error } = await supabase
+    .from('semester_sessions')
+    .update({
+      session_date: sessionDate,
+    })
+    .eq('id', sessionId)
+    .select()
+    .single()
+
+  if (error) throw error
+
+  return data
+}
+
+export async function deleteSemesterSession(sessionId) {
+  const { error } = await supabase
+    .from('semester_sessions')
+    .delete()
+    .eq('id', sessionId)
+
+  if (error) throw error
+}
+

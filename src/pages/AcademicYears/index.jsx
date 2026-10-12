@@ -26,6 +26,8 @@ import {
     deactivateSemester,
 } from '../../services/academicYearService'
 
+import SemesterSessions from '../../components/Academic/SemesterSessions'
+
 function AcademicYears() {
     const { user } = useAuth()
 
@@ -469,6 +471,13 @@ function AcademicYears() {
                     </div>
                 )}
             </section>
+
+            {activeSemesterInfo && (
+                <SemesterSessions
+                    semesterId={activeSemesterId}
+                    semesterName={activeSemesterInfo.name}
+                />
+            )}
 
 
             {/* Add Academic Year */}
