@@ -275,7 +275,7 @@ function Dashboard() {
                     timetableData,
                 ] = await Promise.all([
                     getDashboardCourses(user.id, semesterId),
-                    getDashboardAssignments(user.id, semesterId),
+                    getDashboardAssignments(user.id),
                     getDashboardTasks(user.id, semesterId),
                     getTodayTimetable(user.id, dayOfWeek, semesterId),
                 ])

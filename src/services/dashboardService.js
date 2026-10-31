@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { getUserTasks } from './taskService'
 
 export async function getDashboardCourses(userId, semesterId) {
   if (semesterId == null) return []
@@ -29,9 +30,7 @@ export async function getDashboardCourses(userId, semesterId) {
 }
 
 
-export async function getDashboardAssignments(userId, semesterId) {
-  if (semesterId == null) return []
-
+export async function getDashboardAssignments(userId) {
   const { data, error } = await supabase
     .from('assignments')
     .select(`
@@ -53,7 +52,6 @@ export async function getDashboardAssignments(userId, semesterId) {
         )
       )
     `)
-    .eq('courses.semester_id', semesterId)
     .eq('courses.semesters.academic_years.user_id', userId)
     .order('due_date', { ascending: true })
 
@@ -64,34 +62,8 @@ export async function getDashboardAssignments(userId, semesterId) {
 
 export async function getDashboardTasks(userId, semesterId) {
   if (semesterId == null) return []
-
-  const { data, error } = await supabase
-    .from('tasks')
-    .select(`
-      id,
-      title,
-      due_date,
-      priority,
-      status,
-      courses!inner (
-        id,
-        code,
-        name,
-        semester_id,
-        semesters!inner (
-          academic_years!inner (
-            user_id
-          )
-        )
-      )
-    `)
-    .eq('courses.semester_id', semesterId)
-    .eq('courses.semesters.academic_years.user_id', userId)
-    .order('due_date', { ascending: true })
-
-  if (error) throw error
-
-  return data || []
+  const tasks = await getUserTasks(userId)
+  return tasks.filter((task) => task.courses?.semester_id === semesterId)
 }
 
 export async function getTodayTimetable(userId, dayOfWeek, semesterId) {
